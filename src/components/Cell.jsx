@@ -2,8 +2,12 @@ import React from 'react'
 import { Grid } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import AdjustIcon from "@mui/icons-material/Adjust";
+import { useContext } from "react";
+import GraphContext from '../context/GraphContext'
 
 function Cell({cell}) {
+
+    const {toggleNodeIfMouseIsDown, setMouseIsUp, handleMouseDown} = useContext(GraphContext);
     
     const finishCellStyle = { width: 25,
         height: 25,
@@ -44,47 +48,30 @@ function Cell({cell}) {
       }
 
     const renderCell = () => {
-        if (cell.isFinish) {
-            return (
-              <Grid
-                item
-                xs={0}
-                sx={finishCellStyle}
-                alignItems="center"
-              >
-                <AdjustIcon></AdjustIcon>
-              </Grid>
-            );
+        let style = emptyCellStyle;
+        let children = <></>
+        if (cell.isEnd) {
+            style = finishCellStyle
+            children = <AdjustIcon></AdjustIcon>
           } else if (cell.isStart) {
-            return (
-              <Grid
-                item
-                xs={0}
-                sx={startCellStyle}
-                alignItems="center"
-              >
-                <ArrowForwardIosIcon></ArrowForwardIosIcon>
-              </Grid>
-            );
+              style = startCellStyle
+              children = <ArrowForwardIosIcon></ArrowForwardIosIcon>
           } else if (cell.isWall) {
-            return (
-              <Grid
-                item
-                xs={0}
-                sx={wallCellStyle}
-                alignItems="center"
-              ></Grid>
-            );
-          } else {
-            return (
-              <Grid
-                item
-                xs={0}
-                sx={emptyCellStyle}
-                alignItems="center"
-              ></Grid>
-            );
-          }
+              style = wallCellStyle
+          } 
+          return (
+            <Grid
+            item
+            xs={0}
+            sx={style}
+            alignItems="center"
+            onMouseDown={() => handleMouseDown(cell)}
+            onMouseEnter={()=> toggleNodeIfMouseIsDown(cell)}
+            onMouseUp={setMouseIsUp}
+          >
+            {children}
+          </Grid>
+        )
     }
     
     return (

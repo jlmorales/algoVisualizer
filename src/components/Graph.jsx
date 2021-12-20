@@ -10,11 +10,6 @@ import { withStyles } from '@mui/material/styles';
 const classes = {
     root: {
       flexGrow: 1
-    },
-    paper: {
-      padding: 20,
-      textAlign: "center",
-      color: "#777"
     }
   };
   
@@ -27,7 +22,7 @@ function Graph() {
             <Grid container >
             {graph.map((row, rowIdx) => {
                 return (
-                    <Grid container item spacing={0} columns={30} key={rowIdx} xs = {30} wrap={"nowrap"}>
+                    <Grid container item spacing={0} columns={30} key={rowIdx} xs = {30} sm = {60} wrap={"nowrap"}>
                     {row.map( (node, nodeIdx) => {
                         return (<Cell key= {`${rowIdx}_${nodeIdx}`} cell= {node}/>)
                     })}
