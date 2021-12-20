@@ -105,12 +105,19 @@ export const GraphProvider = ({ children }) => {
     );
   };
 
-  const toggleNodeIfMouseIsDown = (cell) => {
+  const handleMouseEnterCell = (cell) => {
+    if (!mouseIsDown && cell.isStart) {
+      setToggleMode("toggleStart");
+    } else if (!mouseIsDown && cell.isEnd) {
+      setToggleMode("toggleEnd");
+    } else if (!mouseIsDown) {
+      setToggleMode("toggleWalls");
+    }
     if (!mouseIsDown) return;
     toggleNode(cell);
   };
 
-  const setMouseIsUp = () => {
+  const handleMouseUpCell = () => {
     setMouseIsDown(false);
   };
 
@@ -119,8 +126,8 @@ export const GraphProvider = ({ children }) => {
       value={{
         graph,
         toggleNode,
-        toggleNodeIfMouseIsDown,
-        setMouseIsUp,
+        handleMouseEnterCell,
+        handleMouseUpCell,
         handleMouseDown,
       }}
     >

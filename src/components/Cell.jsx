@@ -7,7 +7,7 @@ import GraphContext from '../context/GraphContext'
 
 function Cell({cell}) {
 
-    const {toggleNodeIfMouseIsDown, setMouseIsUp, handleMouseDown} = useContext(GraphContext);
+    const {handleMouseEnterCell, handleMouseUpCell, handleMouseDown} = useContext(GraphContext);
     
     const finishCellStyle = { width: 25,
         height: 25,
@@ -47,6 +47,10 @@ function Cell({cell}) {
         },
       }
 
+    const preventDragHandler = (e) => {
+      e.preventDefault();
+    }
+
     const renderCell = () => {
         let style = emptyCellStyle;
         let children = <></>
@@ -66,8 +70,9 @@ function Cell({cell}) {
             sx={style}
             alignItems="center"
             onMouseDown={() => handleMouseDown(cell)}
-            onMouseEnter={()=> toggleNodeIfMouseIsDown(cell)}
-            onMouseUp={setMouseIsUp}
+            onMouseEnter={()=> handleMouseEnterCell(cell)}
+            onMouseUp={handleMouseUpCell}
+            onDragStart={preventDragHandler}
           >
             {children}
           </Grid>
