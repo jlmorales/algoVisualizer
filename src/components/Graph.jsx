@@ -13,7 +13,6 @@ const classes = {
     }
   };
   
-
 function Graph() {
     
     const {graph} = useContext(GraphContext);
@@ -30,7 +29,6 @@ function Graph() {
                 )
             })}
             </Grid>
-            
         </div>
     )
 }

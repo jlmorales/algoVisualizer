@@ -1,4 +1,5 @@
 import { createContext, useState } from "react";
+import bfs from "../algorithms/bfs";
 
 const GraphContext = createContext();
 
@@ -7,7 +8,16 @@ export const GraphProvider = ({ children }) => {
   const [currentEnd, setCurrentEnd] = useState({ row: 10, col: 15 });
   const [graph, setGraph] = useState(initGraph());
   const [mouseIsDown, setMouseIsDown] = useState(false);
-  const [toggleMode, setToggleMode] = useState("toggleEnd");
+  const [toggleMode, setToggleMode] = useState("toggleWalls");
+
+  const handleVisualize = () => {
+    const returnValue = bfs(
+      graph,
+      graph[currentStart.row][currentStart.col],
+      graph[currentEnd.row][currentEnd.col]
+    );
+    console.log(returnValue);
+  };
 
   const handleMouseDown = (cell) => {
     setMouseIsDown(true);
@@ -129,6 +139,7 @@ export const GraphProvider = ({ children }) => {
         handleMouseEnterCell,
         handleMouseUpCell,
         handleMouseDown,
+        handleVisualize,
       }}
     >
       {children}
