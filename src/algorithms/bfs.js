@@ -14,13 +14,13 @@ export default function bfs(oldGraph, start, end) {
     [0, -1],
     [0, 1],
   ];
-  console.log(`we started here : ${start.row} ${start.col}`);
+  // console.log(`we started here : ${start.row} ${start.col}`);
   queue.push([start.row, start.col]);
   graph[start.row][start.col].isVisited = true;
 
   while (queue.length !== 0) {
     let [row, col] = queue.shift();
-    console.log(`Currently at this node : ${start.row} ${start.col}`);
+    // console.log(`Currently at this node : ${start.row} ${start.col}`);
     for (let i = 0; i < 4; i++) {
       const adjRow = directions[i][0] + row;
       const adjCol = directions[i][1] + col;
@@ -33,7 +33,7 @@ export default function bfs(oldGraph, start, end) {
         graph[adjRow][adjCol].previousNode = [row, col];
         graph[adjRow][adjCol].isVisited = true;
         visitedNodes.push([adjRow, adjCol]);
-        console.log(`searching: ${adjRow} ${adjCol}`);
+        // console.log(`searching: ${adjRow} ${adjCol}`);
       }
     }
   }

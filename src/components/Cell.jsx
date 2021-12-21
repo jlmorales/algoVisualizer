@@ -86,6 +86,8 @@ function Cell({cell}) {
               style = wallCellStyle
           } else if (cell.showVisited){
             style = visitedCellStyle
+          } else if (cell.showPath){
+            style = pathCellStyle
           }
           return (
             <Grid

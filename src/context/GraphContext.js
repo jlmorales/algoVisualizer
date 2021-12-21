@@ -20,7 +20,7 @@ export const GraphProvider = ({ children }) => {
   };
 
   const visualizeBfs = (bfsResults) => {
-    const newGraph = bfsResults.graph;
+    const searchGraph = bfsResults.graph;
     const pathVisited = bfsResults.visitedNodes;
     const foundEnd = bfsResults.foundEnd;
 
@@ -31,25 +31,65 @@ export const GraphProvider = ({ children }) => {
           const newGraph = oldGraph.map((row) => {
             let newRow = row.slice();
             return newRow.map((cell) => {
-              return { ...cell };
+              if (cell.row === pathRow && cell.col === pathCol) {
+                return { ...cell, showPath: true };
+              } else if (cell.showPath) {
+                return { ...cell, showVisited: true, showPath: false };
+              } else {
+                return { ...cell };
+              }
             });
           });
-          newGraph[pathRow][pathCol].showVisited = true;
           return newGraph;
         });
       }, 3);
     }
-  };
-
-  const handleUpdateGraph = (pathRow, pathCol) => {
-    return () => {
-      const newGraph = graph.map((row) => {
-        let newRow = row.slice();
-        return newRow.map((cell) => {
-          return { ...cell };
+    setTimeout(() => {
+      setGraph((oldGraph) => {
+        const newGraph = oldGraph.map((row) => {
+          let newRow = row.slice();
+          return newRow.map((cell) => {
+            if (cell.showPath) {
+              return { ...cell, showVisited: true, showPath: false };
+            } else {
+              return { ...cell };
+            }
+          });
         });
+        return newGraph;
       });
-    };
+    }, 6);
+    if (foundEnd) {
+      let [previousRow, previousCol] = [currentEnd.row, currentEnd.col];
+      let previousNode = searchGraph[previousRow][previousCol];
+      // console.log(previousNode);
+      const pathBack = [];
+      while (!previousNode.isStart) {
+        [previousRow, previousCol] =
+          searchGraph[previousNode.row][previousNode.col].previousNode;
+        previousNode = searchGraph[previousRow][previousCol];
+        pathBack.push(previousNode);
+      }
+      // we pop off the start node
+      pathBack.pop();
+      pathBack.forEach((thisCell) => {
+        setTimeout(() => {
+          setGraph((oldGraph) => {
+            const newGraph = oldGraph.map((row) => {
+              let newRow = row.slice();
+              return newRow.map((cell) => {
+                if (cell.row === thisCell.row && cell.col === thisCell.col) {
+                  return { ...cell, showVisited: false, showPath: true };
+                } else {
+                  return { ...cell };
+                }
+              });
+            });
+            return newGraph;
+          });
+        }, 6);
+      });
+    }
   };
 
   const handleMouseDown = (cell) => {
@@ -78,7 +118,7 @@ export const GraphProvider = ({ children }) => {
     const row = cellToToggle.row;
     const col = cellToToggle.col;
     cellToToggle.isWall = !cellToToggle.isWall;
-    console.log(cellToToggle);
+    // console.log(cellToToggle);
     setGraph(
       graph.map((cell) => {
         return cell.row === row && cell.col === col
@@ -203,6 +243,7 @@ const initNode = (row, col) => {
     isWall: false,
     previousNode: null,
     showVisited: false,
+    showVisiting: false,
     showPath: false,
   };
 };
