@@ -47,6 +47,28 @@ function Cell({cell}) {
         },
       }
 
+      const visitedCellStyle = {
+        width: 25,
+        height: 25,
+        border: "1px solid rgb(175, 216, 248)",
+        backgroundColor: "#fbff03",
+        "&:hover": {
+          backgroundColor: "primary.main",
+          opacity: [0.9, 0.8, 0.7],
+        },
+      }
+
+      const pathCellStyle = {
+        width: 25,
+        height: 25,
+        border: "1px solid rgb(175, 216, 248)",
+        backgroundColor: "#ff9603",
+        "&:hover": {
+          backgroundColor: "primary.main",
+          opacity: [0.9, 0.8, 0.7],
+        },
+      }
+
     const preventDragHandler = (e) => {
       e.preventDefault();
     }
@@ -62,7 +84,9 @@ function Cell({cell}) {
               children = <ArrowForwardIosIcon></ArrowForwardIosIcon>
           } else if (cell.isWall) {
               style = wallCellStyle
-          } 
+          } else if (cell.showVisited){
+            style = visitedCellStyle
+          }
           return (
             <Grid
             item

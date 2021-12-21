@@ -11,12 +11,45 @@ export const GraphProvider = ({ children }) => {
   const [toggleMode, setToggleMode] = useState("toggleWalls");
 
   const handleVisualize = () => {
-    const returnValue = bfs(
+    const bfsResults = bfs(
       graph,
       graph[currentStart.row][currentStart.col],
       graph[currentEnd.row][currentEnd.col]
     );
-    console.log(returnValue);
+    visualizeBfs(bfsResults);
+  };
+
+  const visualizeBfs = (bfsResults) => {
+    const newGraph = bfsResults.graph;
+    const pathVisited = bfsResults.visitedNodes;
+    const foundEnd = bfsResults.foundEnd;
+
+    for (let i = 0; i < pathVisited.length; i++) {
+      const [pathRow, pathCol] = pathVisited[i];
+      setTimeout(() => {
+        setGraph((oldGraph) => {
+          const newGraph = oldGraph.map((row) => {
+            let newRow = row.slice();
+            return newRow.map((cell) => {
+              return { ...cell };
+            });
+          });
+          newGraph[pathRow][pathCol].showVisited = true;
+          return newGraph;
+        });
+      }, 3);
+    }
+  };
+
+  const handleUpdateGraph = (pathRow, pathCol) => {
+    return () => {
+      const newGraph = graph.map((row) => {
+        let newRow = row.slice();
+        return newRow.map((cell) => {
+          return { ...cell };
+        });
+      });
+    };
   };
 
   const handleMouseDown = (cell) => {
@@ -169,6 +202,8 @@ const initNode = (row, col) => {
     isVisited: false,
     isWall: false,
     previousNode: null,
+    showVisited: false,
+    showPath: false,
   };
 };
 

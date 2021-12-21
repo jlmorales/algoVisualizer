@@ -1,7 +1,7 @@
 import { Box} from '@mui/system';
 import { Grid } from "@mui/material";
 import React from 'react'
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import GraphContext from '../context/GraphContext'
 import Cell from './Cell';
 import classnames from 'classnames';
@@ -16,9 +16,13 @@ const classes = {
 function Graph() {
     
     const {graph} = useContext(GraphContext);
-    return (
-        <div className={classes.root}>
-            <Grid container >
+
+    useEffect(() => {
+        return renderGraph();
+    }, [graph])
+
+    const renderGraph = () => {
+        return (<Grid container >
             {graph.map((row, rowIdx) => {
                 return (
                     <Grid container item spacing={0} columns={30} key={rowIdx} xs = {30} sm = {60} wrap={"nowrap"}>
@@ -28,7 +32,12 @@ function Graph() {
                     </Grid>
                 )
             })}
-            </Grid>
+            </Grid>)
+    }
+
+    return (
+        <div className={classes.root}>
+            {renderGraph()}
         </div>
     )
 }
