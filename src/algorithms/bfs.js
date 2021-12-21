@@ -50,7 +50,6 @@ const isEnd = (graph, row, col) => {
 const isValidNextStep = (graph, row, col) => {
   if (row < 0 || col < 0 || row >= graph.length || col >= graph[0].length)
     return false;
-  console.log(graph[row][col]);
   if (graph[row][col].isVisited || graph[row][col].isWall) return false;
   return true;
 };

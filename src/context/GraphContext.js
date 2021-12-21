@@ -26,6 +26,7 @@ export const GraphProvider = ({ children }) => {
 
   const handleVisualize = async () => {
     if (interactionDisabled) return;
+    setIsVisualized(true);
     setInteractionDisabled(true);
     clearPathAndVisited();
     const bfsResults = bfs(
@@ -36,6 +37,50 @@ export const GraphProvider = ({ children }) => {
     visualizeBfs(bfsResults).then(() => {
       setInteractionDisabled(false);
     });
+  };
+
+  const rerenderVisualization = () => {
+    const bfsResults = bfs(
+      graph,
+      graph[currentStart.row][currentStart.col],
+      graph[currentEnd.row][currentEnd.col]
+    );
+    visualizeSearchFast(bfsResults);
+  };
+
+  const visualizeSearchFast = (searchResults) => {
+    const searchGraph = searchResults.graph;
+    const pathVisited = searchResults.visitedNodes;
+    const foundEnd = searchResults.foundEnd;
+    const newGraph = graph.map((row) => {
+      return row.map((cell) => {
+        return { ...cell, showVisited: false, showPath: false };
+      });
+    });
+    // console.log(pathVisited);
+    pathVisited.forEach((nextStep) => {
+      let [nextRow, nextCol] = nextStep;
+      newGraph[nextRow][nextCol].showVisited = true;
+    });
+    if (foundEnd) {
+      let [previousRow, previousCol] = [currentEnd.row, currentEnd.col];
+      let previousNode = searchGraph[previousRow][previousCol];
+      const pathBack = [];
+      while (!previousNode.isStart) {
+        [previousRow, previousCol] =
+          searchGraph[previousNode.row][previousNode.col].previousNode;
+        previousNode = searchGraph[previousRow][previousCol];
+        pathBack.push(previousNode);
+      }
+
+      // we pop off the start node
+      pathBack.pop();
+      pathBack.forEach((thisCell) => {
+        newGraph[thisCell.row][thisCell.col].showVisited = false;
+        newGraph[thisCell.row][thisCell.col].showPath = true;
+      });
+    }
+    setGraph(newGraph);
   };
 
   const visualizeNextSearchStep = (pathRow, pathCol) => {
@@ -121,82 +166,34 @@ export const GraphProvider = ({ children }) => {
     const searchGraph = bfsResults.graph;
     const pathVisited = bfsResults.visitedNodes;
     const foundEnd = bfsResults.foundEnd;
-
     for (let i = 0; i < pathVisited.length; i++) {
       const [pathRow, pathCol] = pathVisited[i];
       await visualizeNextSearchStep(pathRow, pathCol);
     }
-    // setTimeout(() => {
-    //   setGraph((oldGraph) => {
-    //     const newGraph = oldGraph.map((row) => {
-    //       let newRow = row.slice();
-    //       return newRow.map((cell) => {
-    //         if (cell.showPath) {
-    //           return { ...cell, showVisited: true, showPath: false };
-    //         } else {
-    //           return { ...cell };
-    //         }
-    //       });
-    //     });
-    //     return newGraph;
-    //   });
-    // }, 6);
     if (foundEnd) {
       await clearPathSteps();
       await visualizePathEndToStart(searchGraph);
-      // let [previousRow, previousCol] = [currentEnd.row, currentEnd.col];
-      // let previousNode = searchGraph[previousRow][previousCol];
-      // // console.log(previousNode);
-      // const pathBack = [];
-      // while (!previousNode.isStart) {
-      //   [previousRow, previousCol] =
-      //     searchGraph[previousNode.row][previousNode.col].previousNode;
-      //   previousNode = searchGraph[previousRow][previousCol];
-      //   pathBack.push(previousNode);
-      // }
-      // // we pop off the start node
-      // pathBack.pop();
-      // pathBack.forEach((thisCell) => {
-      //   setTimeout(() => {
-      //     setGraph((oldGraph) => {
-      //       const newGraph = oldGraph.map((row) => {
-      //         let newRow = row.slice();
-      //         return newRow.map((cell) => {
-      //           if (cell.row === thisCell.row && cell.col === thisCell.col) {
-      //             return { ...cell, showVisited: false, showPath: true };
-      //           } else {
-      //             return { ...cell };
-      //           }
-      //         });
-      //       });
-      //       return newGraph;
-      //     });
-      //   }, 6);
-      // });
     }
     setInteractionDisabled(false);
   };
 
-  const handleMouseDown = (cell) => {
-    if (interactionDisabled) return;
-    setMouseIsDown(true);
-    toggleNode(cell);
-  };
-
-  const toggleNode = (cellToToggle) => {
-    switch (toggleMode) {
-      case "toggleWalls":
-        setToWall(cellToToggle);
-        break;
-      case "toggleStart":
-        setToStart(cellToToggle);
-        break;
-      case "toggleEnd":
-        setToFinish(cellToToggle);
-        break;
-      default:
-        console.log("something unexpected has happened");
-    }
+  const toggleNode = async (cellToToggle) => {
+    return new Promise((resolve) => {
+      switch (toggleMode) {
+        case "toggleWalls":
+          setToWall(cellToToggle);
+          break;
+        case "toggleStart":
+          setToStart(cellToToggle);
+          break;
+        case "toggleEnd":
+          setToFinish(cellToToggle);
+          break;
+        default:
+          console.log("something unexpected has happened");
+      }
+      resolve("Done");
+    });
   };
 
   const setToWall = (cellToToggle) => {
@@ -274,9 +271,15 @@ export const GraphProvider = ({ children }) => {
     );
   };
 
-  const handleMouseEnterCell = (cell) => {
+  const handleMouseDown = async (cell) => {
     if (interactionDisabled) return;
-    console.log(interactionDisabled);
+    setMouseIsDown(true);
+    await toggleNode(cell);
+  };
+
+  const handleMouseEnterCell = async (cell) => {
+    if (interactionDisabled) return;
+    // console.log(interactionDisabled);
     if (!mouseIsDown && cell.isStart) {
       setToggleMode("toggleStart");
     } else if (!mouseIsDown && cell.isEnd) {
@@ -285,12 +288,13 @@ export const GraphProvider = ({ children }) => {
       setToggleMode("toggleWalls");
     }
     if (!mouseIsDown) return;
-    toggleNode(cell);
+    await toggleNode(cell);
   };
 
   const handleMouseUpCell = () => {
     if (interactionDisabled) return;
     setMouseIsDown(false);
+    if (isVisualized) rerenderVisualization();
   };
 
   return (

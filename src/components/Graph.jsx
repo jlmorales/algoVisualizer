@@ -17,10 +17,6 @@ function Graph() {
     
     const {graph} = useContext(GraphContext);
 
-    useEffect(() => {
-        return renderGraph();
-    }, [graph])
-
     const renderGraph = () => {
         return (<Grid container >
             {graph.map((row, rowIdx) => {
