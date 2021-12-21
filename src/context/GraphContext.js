@@ -9,23 +9,37 @@ export const GraphProvider = ({ children }) => {
   const [graph, setGraph] = useState(initGraph());
   const [mouseIsDown, setMouseIsDown] = useState(false);
   const [toggleMode, setToggleMode] = useState("toggleWalls");
+  const [interactionDisabled, setInteractionDisabled] = useState(false);
+  const [isVisualized, setIsVisualized] = useState(false);
 
-  const handleVisualize = () => {
+  const clearPathAndVisited = () => {
+    setGraph((oldGraph) => {
+      const newGraph = oldGraph.map((row) => {
+        let newRow = row.slice();
+        return newRow.map((cell) => {
+          return { ...cell, showVisited: false, showPath: false };
+        });
+      });
+      return newGraph;
+    });
+  };
+
+  const handleVisualize = async () => {
+    if (interactionDisabled) return;
+    setInteractionDisabled(true);
+    clearPathAndVisited();
     const bfsResults = bfs(
       graph,
       graph[currentStart.row][currentStart.col],
       graph[currentEnd.row][currentEnd.col]
     );
-    visualizeBfs(bfsResults);
+    visualizeBfs(bfsResults).then(() => {
+      setInteractionDisabled(false);
+    });
   };
 
-  const visualizeBfs = (bfsResults) => {
-    const searchGraph = bfsResults.graph;
-    const pathVisited = bfsResults.visitedNodes;
-    const foundEnd = bfsResults.foundEnd;
-
-    for (let i = 0; i < pathVisited.length; i++) {
-      const [pathRow, pathCol] = pathVisited[i];
+  const visualizeNextSearchStep = (pathRow, pathCol) => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         setGraph((oldGraph) => {
           const newGraph = oldGraph.map((row) => {
@@ -42,24 +56,34 @@ export const GraphProvider = ({ children }) => {
           });
           return newGraph;
         });
-      }, 3);
-    }
-    setTimeout(() => {
-      setGraph((oldGraph) => {
-        const newGraph = oldGraph.map((row) => {
-          let newRow = row.slice();
-          return newRow.map((cell) => {
-            if (cell.showPath) {
-              return { ...cell, showVisited: true, showPath: false };
-            } else {
-              return { ...cell };
-            }
+        resolve("done");
+      }, 1);
+    });
+  };
+
+  const clearPathSteps = () => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        setGraph((oldGraph) => {
+          const newGraph = oldGraph.map((row) => {
+            let newRow = row.slice();
+            return newRow.map((cell) => {
+              if (cell.showPath) {
+                return { ...cell, showVisited: true, showPath: false };
+              } else {
+                return { ...cell };
+              }
+            });
           });
+          return newGraph;
         });
-        return newGraph;
-      });
-    }, 6);
-    if (foundEnd) {
+      }, 1);
+      resolve("Done");
+    });
+  };
+
+  const visualizePathEndToStart = (searchGraph) => {
+    return new Promise((resolve) => {
       let [previousRow, previousCol] = [currentEnd.row, currentEnd.col];
       let previousNode = searchGraph[previousRow][previousCol];
       // console.log(previousNode);
@@ -87,12 +111,74 @@ export const GraphProvider = ({ children }) => {
             });
             return newGraph;
           });
-        }, 6);
+        }, 1);
       });
+      resolve("done");
+    });
+  };
+
+  const visualizeBfs = async (bfsResults) => {
+    const searchGraph = bfsResults.graph;
+    const pathVisited = bfsResults.visitedNodes;
+    const foundEnd = bfsResults.foundEnd;
+
+    for (let i = 0; i < pathVisited.length; i++) {
+      const [pathRow, pathCol] = pathVisited[i];
+      await visualizeNextSearchStep(pathRow, pathCol);
     }
+    // setTimeout(() => {
+    //   setGraph((oldGraph) => {
+    //     const newGraph = oldGraph.map((row) => {
+    //       let newRow = row.slice();
+    //       return newRow.map((cell) => {
+    //         if (cell.showPath) {
+    //           return { ...cell, showVisited: true, showPath: false };
+    //         } else {
+    //           return { ...cell };
+    //         }
+    //       });
+    //     });
+    //     return newGraph;
+    //   });
+    // }, 6);
+    if (foundEnd) {
+      await clearPathSteps();
+      await visualizePathEndToStart(searchGraph);
+      // let [previousRow, previousCol] = [currentEnd.row, currentEnd.col];
+      // let previousNode = searchGraph[previousRow][previousCol];
+      // // console.log(previousNode);
+      // const pathBack = [];
+      // while (!previousNode.isStart) {
+      //   [previousRow, previousCol] =
+      //     searchGraph[previousNode.row][previousNode.col].previousNode;
+      //   previousNode = searchGraph[previousRow][previousCol];
+      //   pathBack.push(previousNode);
+      // }
+      // // we pop off the start node
+      // pathBack.pop();
+      // pathBack.forEach((thisCell) => {
+      //   setTimeout(() => {
+      //     setGraph((oldGraph) => {
+      //       const newGraph = oldGraph.map((row) => {
+      //         let newRow = row.slice();
+      //         return newRow.map((cell) => {
+      //           if (cell.row === thisCell.row && cell.col === thisCell.col) {
+      //             return { ...cell, showVisited: false, showPath: true };
+      //           } else {
+      //             return { ...cell };
+      //           }
+      //         });
+      //       });
+      //       return newGraph;
+      //     });
+      //   }, 6);
+      // });
+    }
+    setInteractionDisabled(false);
   };
 
   const handleMouseDown = (cell) => {
+    if (interactionDisabled) return;
     setMouseIsDown(true);
     toggleNode(cell);
   };
@@ -189,6 +275,8 @@ export const GraphProvider = ({ children }) => {
   };
 
   const handleMouseEnterCell = (cell) => {
+    if (interactionDisabled) return;
+    console.log(interactionDisabled);
     if (!mouseIsDown && cell.isStart) {
       setToggleMode("toggleStart");
     } else if (!mouseIsDown && cell.isEnd) {
@@ -201,6 +289,7 @@ export const GraphProvider = ({ children }) => {
   };
 
   const handleMouseUpCell = () => {
+    if (interactionDisabled) return;
     setMouseIsDown(false);
   };
 
